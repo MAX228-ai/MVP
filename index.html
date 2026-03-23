@@ -79,9 +79,8 @@
     <script>
         let timeLeft = 1500;
         let timerId = null;
-        let isRunning = false;
+        let isRunning = false; 
 
-        // --- SISTĒMAS PALAIŠANA (1. tips) ---
         window.addEventListener('load', () => {
             console.log(`%c[SYSTEM] %cFocusFlow sistēma ir veiksmīgi inicializēta. Versija 1.0.`, "color: #0fbcf9; font-weight: bold", "color: inherit");
             updateDisplay();
@@ -97,10 +96,8 @@
         function startTimer() {
             const val = document.getElementById('minInput').value;
             
-            // --- LIETOTĀJA DARBĪBA (2. tips) ---
             console.log(`%c[USER] %cLietotājs nospieda START. Iestatītais laiks: ${val} min.`, "color: #a29bfe; font-weight: bold", "color: inherit");
 
-            // --- KĻŪDA (5. tips) ---
             if (val <= 0) {
                 console.error(`[ERROR] Neveiksmīga operācija: Ievadīta nederīga vērtība (${val}). Laikam jābūt virs 0.`);
                 alert("Kļūda: Ievadiet pozitīvu skaitli!");
@@ -120,7 +117,6 @@
                 } else {
                     clearInterval(timerId);
                     isRunning = false;
-                    // --- VEIKSMĪGA OPERĀCIJA (3. tips) ---
                     console.log(`%c[SUCCESS] %cFokusa sesija (${val} min) ir pabeigta veiksmīgi.`, "color: #05c46b; font-weight: bold", "color: inherit");
                     alert("Laiks beidzies!");
                 }
@@ -128,7 +124,6 @@
         }
 
         function pauseTimer() {
-            // --- BRĪDINĀJUMS (4. tips) ---
             if (!isRunning) {
                 console.warn(`[WARN] Neparasta situācija: Mēģinājums apturēt taimeri, kas jau ir apturēts vai nav palaists.`);
                 return;
