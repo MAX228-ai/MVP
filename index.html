@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow MVP - Logging Uzdevums</title>
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --primary: #4834d4;
+            --text: #2f3542;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 320px;
+        }
+
+        h1 { font-size: 24px; color: var(--primary); margin-bottom: 20px; }
+
+        .timer-display {
+            font-size: 56px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .input-group { margin-bottom: 20px; }
+        input { width: 60px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 5px; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-start { background: #2ed573; color: white; }
+        .btn-pause { background: #ffa502; color: white; }
+        .btn-reset { background: #ff4757; color: white; }
+        .btn:hover { opacity: 0.8; }
+        
+        p { font-size: 12px; color: #7f8c8d; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>FocusFlow</h1>
+        <div class="input-group">
+            <input type="number" id="minInput" value="25" min="1"> minūtes
+        </div>
+        <div class="timer-display" id="display">25:00</div>
+        <div class="controls">
+            <button class="btn btn-start" onclick="startTimer()">Starts</button>
+            <button class="btn btn-pause" onclick="pauseTimer()">Pause</button>
+            <button class="btn btn-reset" onclick="resetTimer()">Atiestatīt</button>
+        </div>
+        <p>(Atver Console (F12), lai redzētu logus)</p>
+    </div>
+
+    <script>
+        let timeLeft = 1500;
+        let timerId = null;
+        let isRunning = false;
+
+        // --- SISTĒMAS PALAIŠANA (1. tips) ---
+        window.addEventListener('load', () => {
+            console.log(`%c[SYSTEM] %cFocusFlow sistēma ir veiksmīgi inicializēta. Versija 1.0.`, "color: #0fbcf9; font-weight: bold", "color: inherit");
+            updateDisplay();
+        });
+
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('display').innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            const val = document.getElementById('minInput').value;
+            
+            // --- LIETOTĀJA DARBĪBA (2. tips) ---
+            console.log(`%c[USER] %cLietotājs nospieda START. Iestatītais laiks: ${val} min.`, "color: #a29bfe; font-weight: bold", "color: inherit");
+
+            // --- KĻŪDA (5. tips) ---
+            if (val <= 0) {
+                console.error(`[ERROR] Neveiksmīga operācija: Ievadīta nederīga vērtība (${val}). Laikam jābūt virs 0.`);
+                alert("Kļūda: Ievadiet pozitīvu skaitli!");
+                return;
+            }
+
+            if (isRunning) return;
+
+            timeLeft = val * 60;
+            updateDisplay();
+            isRunning = true;
+
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerId);
+                    isRunning = false;
+                    // --- VEIKSMĪGA OPERĀCIJA (3. tips) ---
+                    console.log(`%c[SUCCESS] %cFokusa sesija (${val} min) ir pabeigta veiksmīgi.`, "color: #05c46b; font-weight: bold", "color: inherit");
+                    alert("Laiks beidzies!");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            // --- BRĪDINĀJUMS (4. tips) ---
+            if (!isRunning) {
+                console.warn(`[WARN] Neparasta situācija: Mēģinājums apturēt taimeri, kas jau ir apturēts vai nav palaists.`);
+                return;
+            }
+
+            clearInterval(timerId);
+            isRunning = false;
+            console.log(`%c[USER] %cLietotājs apturēja taimeri pie atzīmes ${document.getElementById('display').innerText}`, "color: #a29bfe; font-weight: bold", "color: inherit");
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            timeLeft = 1500;
+            updateDisplay();
+            console.log(`%c[USER] %cLietotājs veica taimera atiestatīšanu (Reset).`, "color: #a29bfe; font-weight: bold", "color: inherit");
+        }
+    </script>
+</body>
+</html>
