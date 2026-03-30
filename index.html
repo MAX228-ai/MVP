@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusFlow MVP - Logging Uzdevums</title>
+    <title>FocusFlow MVP</title>
+
     <style>
         :root {
             --bg: #f5f6fa;
@@ -14,133 +15,154 @@
         body {
             font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg);
-            color: var(--text);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
         }
 
         .container {
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
             width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        h1 { font-size: 24px; color: var(--primary); margin-bottom: 20px; }
+        h1 { color: var(--primary); }
 
         .timer-display {
-            font-size: 56px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            font-size: 48px;
+            margin: 20px 0;
         }
 
-        .input-group { margin-bottom: 20px; }
-        input { width: 60px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 5px; }
+        input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+        }
 
         .btn {
-            padding: 10px 20px;
+            margin: 5px;
+            padding: 10px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            margin: 5px;
-            transition: 0.2s;
+            color: white;
         }
 
-        .btn-start { background: #2ed573; color: white; }
-        .btn-pause { background: #ffa502; color: white; }
-        .btn-reset { background: #ff4757; color: white; }
-        .btn:hover { opacity: 0.8; }
-        
-        p { font-size: 12px; color: #7f8c8d; margin-top: 20px; }
+        .start { background: #2ecc71; }
+        .pause { background: #f39c12; }
+        .reset { background: #e74c3c; }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>FocusFlow</h1>
-        <div class="input-group">
-            <input type="number" id="minInput" value="25" min="1"> minūtes
-        </div>
-        <div class="timer-display" id="display">25:00</div>
-        <div class="controls">
-            <button class="btn btn-start" onclick="startTimer()">Starts</button>
-            <button class="btn btn-pause" onclick="pauseTimer()">Pause</button>
-            <button class="btn btn-reset" onclick="resetTimer()">Atiestatīt</button>
-        </div>
-        <p>(Atver Console (F12), lai redzētu logus)</p>
-    </div>
+<div class="container">
+    <h1>FocusFlow</h1>
 
-    <script>
-        let timeLeft = 1500;
-        let timerId = null;
-        let isRunning = false; 
+    <p>Ievadi minūtes:</p>
+    <input type="number" id="minInput" value="25">
 
-        window.addEventListener('load', () => {
-            console.log(`%c[SYSTEM] %cFocusFlow sistēma ir veiksmīgi inicializēta. Versija 1.0.`, "color: #0fbcf9; font-weight: bold", "color: inherit");
+    <div class="timer-display" id="display">25:00</div>
+
+    <button class="btn start" onclick="startTimer()">Start</button>
+    <button class="btn pause" onclick="pauseTimer()">Pause</button>
+    <button class="btn reset" onclick="resetTimer()">Reset</button>
+</div>
+
+<script>
+let timeLeft = 1500;
+let timerId = null;
+let isRunning = false;
+let lastInput = 25;
+
+// LOGGER
+const logger = {
+    debug: (msg, ctx={}) => console.debug("[DEBUG]", msg, ctx),
+    info: (msg, ctx={}) => console.info("[INFO]", msg, ctx),
+    warn: (msg, ctx={}) => console.warn("[WARN]", msg, ctx),
+    error: (msg, ctx={}) => console.error("[ERROR]", msg, ctx)
+};
+
+window.onload = () => {
+    logger.info("App loaded", {version: "1.1"});
+    updateDisplay();
+};
+
+function updateDisplay() {
+    logger.debug("Updating display", {timeLeft});
+
+    let min = Math.floor(timeLeft / 60);
+    let sec = timeLeft % 60;
+
+    document.getElementById("display").innerText =
+        `${min.toString().padStart(2,"0")}:${sec.toString().padStart(2,"0")}`;
+}
+
+function startTimer() {
+    let val = Number(document.getElementById("minInput").value);
+
+    logger.debug("Start clicked", {input: val});
+
+    if (!val || val <= 0) {
+        logger.error("Invalid input", {value: val});
+        alert("Ievadi pareizu skaitli!");
+        return;
+    }
+
+    if (isRunning) {
+        logger.warn("Timer already running");
+        return;
+    }
+
+    lastInput = val;
+    timeLeft = val * 60;
+    isRunning = true;
+
+    logger.info("Timer started", {minutes: val});
+
+    timerId = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
             updateDisplay();
-        });
-
-        function updateDisplay() {
-            const mins = Math.floor(timeLeft / 60);
-            const secs = timeLeft % 60;
-            document.getElementById('display').innerText = 
-                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function startTimer() {
-            const val = document.getElementById('minInput').value;
-            
-            console.log(`%c[USER] %cLietotājs nospieda START. Iestatītais laiks: ${val} min.`, "color: #a29bfe; font-weight: bold", "color: inherit");
-
-            if (val <= 0) {
-                console.error(`[ERROR] Neveiksmīga operācija: Ievadīta nederīga vērtība (${val}). Laikam jābūt virs 0.`);
-                alert("Kļūda: Ievadiet pozitīvu skaitli!");
-                return;
-            }
-
-            if (isRunning) return;
-
-            timeLeft = val * 60;
-            updateDisplay();
-            isRunning = true;
-
-            timerId = setInterval(() => {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    updateDisplay();
-                } else {
-                    clearInterval(timerId);
-                    isRunning = false;
-                    console.log(`%c[SUCCESS] %cFokusa sesija (${val} min) ir pabeigta veiksmīgi.`, "color: #05c46b; font-weight: bold", "color: inherit");
-                    alert("Laiks beidzies!");
-                }
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            if (!isRunning) {
-                console.warn(`[WARN] Neparasta situācija: Mēģinājums apturēt taimeri, kas jau ir apturēts vai nav palaists.`);
-                return;
-            }
-
+        } else {
             clearInterval(timerId);
             isRunning = false;
-            console.log(`%c[USER] %cLietotājs apturēja taimeri pie atzīmes ${document.getElementById('display').innerText}`, "color: #a29bfe; font-weight: bold", "color: inherit");
-        }
 
-        function resetTimer() {
-            clearInterval(timerId);
-            isRunning = false;
-            timeLeft = 1500;
-            updateDisplay();
-            console.log(`%c[USER] %cLietotājs veica taimera atiestatīšanu (Reset).`, "color: #a29bfe; font-weight: bold", "color: inherit");
+            logger.info("Session finished", {minutes: val});
+            alert("Laiks beidzies!");
         }
-    </script>
+    }, 1000);
+}
+
+function pauseTimer() {
+    if (!isRunning) {
+        logger.warn("Pause without active timer");
+        return;
+    }
+
+    clearInterval(timerId);
+    isRunning = false;
+
+    logger.info("Timer paused", {
+        time: document.getElementById("display").innerText
+    });
+}
+
+function resetTimer() {
+    clearInterval(timerId);
+    isRunning = false;
+
+    timeLeft = lastInput * 60;
+
+    logger.info("Timer reset", {restored: lastInput});
+
+    updateDisplay();
+}
+</script>
+
 </body>
 </html>
